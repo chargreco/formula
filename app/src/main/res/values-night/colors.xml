@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Color de fondo principal -->
+    <color name="write">#404040</color>
+    <color name="recents">#4F4F4F</color>
+    <color name="O">#4769DA</color>
+    <color name="X">#DA4747</color>
+    <color name="lavender">#377A95</color>
+</resources>

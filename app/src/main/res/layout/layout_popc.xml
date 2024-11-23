@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="20dp"
+    android:layout_marginBottom="20dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/numPregOpc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pregunta 1"
+            android:textColor="@color/purple_200"
+            android:textSize="25dp" />
+
+        <Button
+            android:id="@+id/exitpopc"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:textColorLink="@android:color/transparent"
+            android:textSize="20dp"
+            app:icon="@drawable/baseline_clear_24"
+            app:iconGravity="textStart"
+            app:iconSize="30dp"
+            app:iconTint="@color/purple_500" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/pregopc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Pregunta"
+        android:inputType="text"
+        android:textSize="25dp" />
+
+    <EditText
+        android:id="@+id/resp1opc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Respuesta 1"
+        android:inputType="text"
+        android:textSize="25dp" />
+    <EditText
+        android:id="@+id/resp2opc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Respuesta 2"
+        android:inputType="text"
+        android:textSize="25dp" />
+    <EditText
+        android:id="@+id/resp3opc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Respuesta 3"
+        android:inputType="text"
+        android:textSize="25dp" />
+    <EditText
+        android:id="@+id/respcorrectopc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Respuesta correcta"
+        android:inputType="text"
+        android:textSize="25dp" />
+
+</LinearLayout>

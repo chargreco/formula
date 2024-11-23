@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".Login">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foregroundTint="#95DBF7"
+        android:gravity="center_horizontal"
+        android:text="Crear nueva cuenta"
+        android:textColor="#95DBF7"
+        android:textSize="40dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/etuser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@drawable/edit_text_background"
+            android:ems="10"
+            android:hint="Nombre de usuario"
+            android:inputType="text"
+            android:padding="12dp"
+            android:textColorHint="#A0A0A0" />
+
+        <EditText
+            android:id="@+id/etusuario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@drawable/edit_text_background"
+            android:ems="10"
+            android:hint="Nombre"
+            android:inputType="text"
+            android:padding="12dp"
+            android:textColorHint="#A0A0A0" />
+
+        <EditText
+            android:id="@+id/etpass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@drawable/edit_text_background"
+            android:ems="10"
+            android:hint="Contraseña"
+            android:inputType="textPassword"
+            android:padding="12dp"
+            android:textColorHint="#A0A0A0" />
+
+        <EditText
+            android:id="@+id/etp2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@drawable/edit_text_background"
+            android:ems="10"
+            android:hint="Repetir contraseña"
+            android:inputType="textPassword"
+            android:padding="12dp"
+            android:textColorHint="#A0A0A0" />
+
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="8dp"
+            android:background="@drawable/button_login_background"
+            android:elevation="4dp"
+            android:onClick="crear"
+            android:paddingVertical="12dp"
+            android:text="Crear cuenta"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            android:text="¿Ya tienes cuenta? Inicia sesión"/>
+
+        <Button
+            android:id="@+id/btnSingin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="8dp"
+            android:background="@drawable/button_login_background"
+            android:elevation="4dp"
+            android:onClick="iniciar"
+            android:paddingVertical="12dp"
+            android:text="Iniciar Sesión"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</LinearLayout>
