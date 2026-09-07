@@ -30,12 +30,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Actividad que ejecuta la jugabilidad del minijuego "Memorama" (Tipo 3).
+ * Distribuye tarjetas de preguntas y respuestas en una cuadrícula desordenada,
+ * permitiendo al jugador voltear pares para encontrar sus coincidencias correspondientes.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class Mem extends AppCompatActivity {
 
     private RecyclerView memRecyclerView;
     private Button restartButton;
     private RequestQueue requestQueue;
-    private List<Card> cards,quest, answs;
+    private List<Card> cards, quest, answs;
     private List<Integer> selectedCardPositions;
     private MemAdapter memAdapter;
     private int attempts;
@@ -63,8 +71,11 @@ public class Mem extends AppCompatActivity {
         restartButton.setOnClickListener(v -> restartGame());
     }
 
+    /**
+     * Consulta al backend las parejas de preguntas y respuestas para el juego actual.
+     */
     private void fetchQuestionsAndAnswers() {
-        String url = "https://prototipoformula.fun/get_form.php?id=" + getIntent().getIntExtra("idJuego", 0);
+        String url = Constants.BASE_URL + "get_form.php?id=" + getIntent().getIntExtra("idJuego", 0);
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
                 Request.Method.GET,
                 url,
@@ -75,6 +86,11 @@ public class Mem extends AppCompatActivity {
         requestQueue.add(jsonArrayRequest);
     }
 
+    /**
+     * Parsea el JSON recibido creando tarjetas individuales para cada pregunta y respuesta, y desordena el tablero.
+     *
+     * @param response {@link JSONArray} con la lista de parejas.
+     */
     private void parseQuestionsAndAnswers(JSONArray response) {
         cards = new ArrayList<>();
         try {
@@ -95,14 +111,22 @@ public class Mem extends AppCompatActivity {
         }
     }
 
+    /**
+     * Configura el {@link RecyclerView} en una cuadrícula de 2 columnas para el tablero de juego.
+     */
     private void initializeRecyclerView() {
-        memRecyclerView.setLayoutManager(new GridLayoutManager(this, 2)); // 2 tarjetas por línea
+        memRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         selectedCardPositions = new ArrayList<>();
         attempts = 0;
         memAdapter = new MemAdapter(this, cards, this::handleCardClick);
         memRecyclerView.setAdapter(memAdapter);
     }
 
+    /**
+     * Maneja la interacción del usuario al tocar una tarjeta en el tablero.
+     *
+     * @param position Índice de la tarjeta en el adaptador.
+     */
     private void handleCardClick(int position) {
         if (isProcessing || selectedCardPositions.contains(position) || cards.get(position).isRevealed()) return;
 
@@ -123,6 +147,9 @@ public class Mem extends AppCompatActivity {
         }
     }
 
+    /**
+     * Verifica si las dos tarjetas seleccionadas forman un par pregunta-respuesta correcto.
+     */
     private void checkForMatch() {
         if (selectedCardPositions.size() == 2) {
             int firstPosition = selectedCardPositions.get(0);
@@ -133,23 +160,22 @@ public class Mem extends AppCompatActivity {
 
             boolean equals = false;
             for (int i = 0; i < quest.size(); i++) {
-                if(quest.get(i).getText().equals(firstCard.getText()) && answs.get(i).getText().equals(secondCard.getText()) || quest.get(i).getText().equals(secondCard.getText()) && answs.get(i).getText().equals(firstCard.getText())){
+                if (quest.get(i).getText().equals(firstCard.getText()) && answs.get(i).getText().equals(secondCard.getText()) ||
+                        quest.get(i).getText().equals(secondCard.getText()) && answs.get(i).getText().equals(firstCard.getText())) {
                     selectedCardPositions.clear();
                     equals = true;
+                    break;
                 }
             }
-            if(!equals){
+            if (!equals) {
                 resetSelectedCards();
             }
-
-//            if (firstCard.isQuestion() != secondCard.isQuestion() && firstCard.getText().equals(secondCard.getText())) {
-//                selectedCardPositions.clear();
-//            } else {
-//                resetSelectedCards();
-//            }
         }
     }
 
+    /**
+     * Vuelve a ocultar boca abajo las dos tarjetas seleccionadas si no coincidieron.
+     */
     private void resetSelectedCards() {
         for (int position : selectedCardPositions) {
             cards.get(position).setRevealed(false);
@@ -158,6 +184,11 @@ public class Mem extends AppCompatActivity {
         selectedCardPositions.clear();
     }
 
+    /**
+     * Comprueba si todas las tarjetas del tablero han sido reveladas.
+     *
+     * @return true si se completó el juego; false en caso contrario.
+     */
     private boolean isGameFinished() {
         for (Card card : cards) {
             if (!card.isRevealed()) {
@@ -167,6 +198,9 @@ public class Mem extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Despliega la ventana final del juego al haber encontrado todas las parejas.
+     */
     private void showGameOverDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("¡Juego Terminado!");
@@ -182,23 +216,24 @@ public class Mem extends AppCompatActivity {
         builder.show();
     }
 
+    /**
+     * Guarda el resultado del juego en la lista de recientes del backend.
+     */
     private void saveRecent() {
         Intent intent = getIntent();
         SharedPreferences sp = getSharedPreferences("info", MODE_PRIVATE);
         String user = sp.getString("user", "");
         int idJuego = intent.getIntExtra("idJuego", 0);
-        // Crear una solicitud POST para enviar los datos al servidor PHP
-        String url = "https://prototipoformula.fun/save_recent.php";
+
+        String url = Constants.BASE_URL + "save_recent.php";
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         String ans = jsonResponse.getString("ans");
                         if (ans.equals("ok")) {
-                            // Éxito al guardar en la base de datos
                             Toast.makeText(Mem.this, "Juego guardado en recientes", Toast.LENGTH_SHORT).show();
                         } else {
-                            // Error al guardar en la base de datos
                             Toast.makeText(Mem.this, "Error al guardar en recientes", Toast.LENGTH_SHORT).show();
                         }
                     } catch (JSONException e) {
@@ -216,10 +251,12 @@ public class Mem extends AppCompatActivity {
             }
         };
 
-        // Agregar la solicitud a la cola de solicitudes
         requestQueue.add(request);
     }
 
+    /**
+     * Reinicia el juego recargando las preguntas desde el servidor.
+     */
     private void restartGame() {
         fetchQuestionsAndAnswers();
     }

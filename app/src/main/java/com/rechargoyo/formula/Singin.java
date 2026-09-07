@@ -22,10 +22,17 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Actividad encargada del inicio de sesión (autenticación) del usuario.
+ * Valida las credenciales ingresadas mediante el servicio PHP {@code userpass.php}.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class Singin extends AppCompatActivity {
 
     private RequestQueue rq;
-    private EditText etuser,etpass;
+    private EditText etuser, etpass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,56 +45,62 @@ public class Singin extends AppCompatActivity {
             return insets;
         });
 
-        etuser=findViewById(R.id.etusuario);
-        etpass=findViewById(R.id.etpass);
+        etuser = findViewById(R.id.etusuario);
+        etpass = findViewById(R.id.etpass);
 
-        etuser.setFilters(new InputFilter[] { new LowerCaseInputFilter(), new InputFilter.LengthFilter(15)});
-        etpass.setFilters(new InputFilter[] { new Login() , new InputFilter.LengthFilter(20)});
+        // Filtros de entrada para nombre de usuario y contraseña
+        etuser.setFilters(new InputFilter[]{new LowerCaseInputFilter(), new InputFilter.LengthFilter(15)});
+        etpass.setFilters(new InputFilter[]{new Login(), new InputFilter.LengthFilter(20)});
 
-        rq= Volley.newRequestQueue(this);
+        rq = Volley.newRequestQueue(this);
     }
 
-    public void crear(View v){
+    /**
+     * Navega hacia la pantalla de registro si el usuario no tiene cuenta.
+     *
+     * @param v Vista (botón) presionado.
+     */
+    public void crear(View v) {
         Intent intent = new Intent();
-        intent.putExtra("opcion",1);
-        intent.putExtra("user","");
-        intent.putExtra("pass","");
-        setResult(Activity.RESULT_OK,intent);
+        intent.putExtra("opcion", 1);
+        intent.putExtra("user", "");
+        intent.putExtra("pass", "");
+        setResult(Activity.RESULT_OK, intent);
         finish();
     }
 
-    public void iniciar(View v){
-        //Toast.makeText(this, "uno", Toast.LENGTH_SHORT).show();
-        String url="https://prototipoformula.fun/userpass.php?user="+etuser.getText().toString()+"&pass="+etpass.getText().toString();
-        //Toast.makeText(this, url, Toast.LENGTH_SHORT).show();
-        JsonArrayRequest r = new JsonArrayRequest(Request.Method.GET,url,null,
+    /**
+     * Valida el nombre de usuario y contraseña con el backend.
+     *
+     * @param v Vista del botón de inicio de sesión.
+     */
+    public void iniciar(View v) {
+        String url = Constants.BASE_URL + "userpass.php?user=" + etuser.getText().toString() + "&pass=" + etpass.getText().toString();
+
+        JsonArrayRequest r = new JsonArrayRequest(Request.Method.GET, url, null,
                 response -> {
-
-                    //Toast.makeText(this, String.valueOf(response.length()), Toast.LENGTH_SHORT).show();
-                    if(response.length()==1){
-                        try{
-
+                    if (response.length() == 1) {
+                        try {
                             JSONObject obj = new JSONObject(response.get(0).toString());
                             Intent intent = new Intent();
-                            intent.putExtra("user",obj.getString("user"));
-                            intent.putExtra("pass",etpass.getText().toString());
-                            intent.putExtra("opcion",0);
-                            intent.putExtra("creac",obj.getInt("creaciones"));
-                            intent.putExtra("name",obj.getString("nombre"));
-                            setResult(Activity.RESULT_OK,intent);
+                            intent.putExtra("user", obj.getString("user"));
+                            intent.putExtra("pass", etpass.getText().toString());
+                            intent.putExtra("opcion", 0);
+                            intent.putExtra("creac", obj.getInt("creaciones"));
+                            intent.putExtra("name", obj.getString("nombre"));
+                            setResult(Activity.RESULT_OK, intent);
                             finish();
-                        }catch(JSONException e){
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-                    }else{
-                            Toast.makeText(this, "Usuario o contraseña incorrectos, "+response.length(), Toast.LENGTH_SHORT).show();
-
+                    } else {
+                        Toast.makeText(this, "Usuario o contraseña incorrectos", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> {
-                    Intent intent = new Intent(this,NoConection.class);
+                    Intent intent = new Intent(this, NoConection.class);
                     startActivity(intent);
                 });
         rq.add(r);
-
     }
 }

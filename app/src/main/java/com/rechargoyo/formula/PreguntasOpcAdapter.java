@@ -18,12 +18,27 @@ import com.android.volley.toolbox.Volley;
 
 import java.util.List;
 
+/**
+ * Adaptador dinámico para el {@link RecyclerView} utilizado durante la creación de Cuestionarios Simples y Tres en Raya ({@link PregOpc}).
+ * Permite capturar las opciones de respuesta de cada pregunta y serializar la estructura a JSON.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class PreguntasOpcAdapter extends RecyclerView.Adapter<PreguntasOpcAdapter.ViewHolder> {
 
+    /** Lista dinámica de preguntas de opción múltiple. */
     private final List<PreguntaOpc> preguntaOpcList;
-    private RequestQueue requestQueue;
-    private int pos = -1;
 
+    /** Cola de solicitudes Volley. */
+    private RequestQueue requestQueue;
+
+    /**
+     * Construye un adaptador para el editor de preguntas de opción múltiple.
+     *
+     * @param context         Contexto de la interfaz de usuario.
+     * @param preguntaOpcList Lista dinámica de objetos {@link PreguntaOpc}.
+     */
     public PreguntasOpcAdapter(Context context, List<PreguntaOpc> preguntaOpcList) {
         this.preguntaOpcList = preguntaOpcList;
         this.requestQueue = Volley.newRequestQueue(context);
@@ -48,14 +63,12 @@ public class PreguntasOpcAdapter extends RecyclerView.Adapter<PreguntasOpcAdapte
         holder.resp3Opc.setText(pOpc.getRespuesta3());
         holder.respCorrectOpc.setText(pOpc.getRespuestaCorrecta());
 
-        holder.exitOpc.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                preguntaOpcList.remove(positionn);
-                notifyDataSetChanged();
-            }
+        holder.exitOpc.setOnClickListener(v -> {
+            preguntaOpcList.remove(positionn);
+            notifyDataSetChanged();
         });
 
+        // Escuchadores de texto para sincronizar cambios de edición
         holder.pregOpc.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -127,6 +140,9 @@ public class PreguntasOpcAdapter extends RecyclerView.Adapter<PreguntasOpcAdapte
         return preguntaOpcList.size();
     }
 
+    /**
+     * ViewHolder que administra los campos de entrada de la pregunta y sus 4 opciones de respuesta.
+     */
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView numPregOpc;
@@ -149,6 +165,11 @@ public class PreguntasOpcAdapter extends RecyclerView.Adapter<PreguntasOpcAdapte
         }
     }
 
+    /**
+     * Serializa la lista de preguntas de opción múltiple a formato JSON.
+     *
+     * @return Cadena JSON formateada con las preguntas y respuestas.
+     */
     public String post() {
         StringBuilder jsonform = new StringBuilder("[");
         for (int i = 0; i < preguntaOpcList.size(); i++) {
@@ -164,6 +185,11 @@ public class PreguntasOpcAdapter extends RecyclerView.Adapter<PreguntasOpcAdapte
         return jsonform.toString();
     }
 
+    /**
+     * Obtiene la lista de preguntas de opción múltiple.
+     *
+     * @return Lista de objetos {@link PreguntaOpc}.
+     */
     public List<PreguntaOpc> getPreguntaOpc() {
         return preguntaOpcList;
     }

@@ -18,12 +18,31 @@ import com.android.volley.toolbox.Volley;
 
 import java.util.List;
 
+/**
+ * Adaptador dinámico para el {@link RecyclerView} utilizado durante la creación de juegos tipo
+ * Relacionar Columnas y Memorama ({@link Preg1a1}).
+ * Permite agregar, editar y eliminar ítems dinámicamente y construir el payload JSON a enviar al servidor.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class Preguntas1a1Adapter extends RecyclerView.Adapter<Preguntas1a1Adapter.ViewHolder> {
 
+    /** Lista dinámica de pares de pregunta y respuesta. */
     private final List<Pregunta1a1> pregunta1a1List;
+
+    /** Cola de peticiones Volley. */
     private RequestQueue requestQueue;
+
+    /** Contexto de la aplicación. */
     private Context context;
 
+    /**
+     * Construye un nuevo adaptador para el editor de preguntas 1 a 1.
+     *
+     * @param context         Contexto de la interfaz.
+     * @param pregunta1a1List Lista dinámica de objetos {@link Pregunta1a1}.
+     */
     public Preguntas1a1Adapter(Context context, List<Pregunta1a1> pregunta1a1List) {
         this.pregunta1a1List = pregunta1a1List;
         this.requestQueue = Volley.newRequestQueue(context);
@@ -45,6 +64,7 @@ public class Preguntas1a1Adapter extends RecyclerView.Adapter<Preguntas1a1Adapte
         holder.preg1a1.setText(p1a1.getQust());
         holder.resp1a1.setText(p1a1.getAsw());
 
+        // Escuchadores de texto para sincronizar la edición del usuario con el modelo de datos
         holder.preg1a1.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -71,6 +91,7 @@ public class Preguntas1a1Adapter extends RecyclerView.Adapter<Preguntas1a1Adapte
             public void afterTextChanged(Editable s) {}
         });
 
+        // Eliminar elemento de la lista al presionar el botón de descarte
         holder.exitp1a1.setOnClickListener(v -> {
             pregunta1a1List.remove(position);
             notifyItemRemoved(position);
@@ -83,6 +104,9 @@ public class Preguntas1a1Adapter extends RecyclerView.Adapter<Preguntas1a1Adapte
         return pregunta1a1List.size();
     }
 
+    /**
+     * ViewHolder para el ítem editable de pregunta 1 a 1.
+     */
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView numPreg1a1;
@@ -99,18 +123,28 @@ public class Preguntas1a1Adapter extends RecyclerView.Adapter<Preguntas1a1Adapte
         }
     }
 
+    /**
+     * Serializa la lista actual de preguntas 1 a 1 a un formato en cadena JSON apto para ser enviado al servidor PHP.
+     *
+     * @return Cadena formateada en JSON (ej. {@code [{"preg":"...","resp":"..."},...]}).
+     */
     public String post() {
-        String jsonform = "[";
+        StringBuilder jsonform = new StringBuilder("[");
         for (int i = 0; i < pregunta1a1List.size(); i++) {
             Pregunta1a1 p1a1 = pregunta1a1List.get(i);
-            jsonform+=("{\"preg\":\"")+(p1a1.getQust())+("\",");
-            jsonform+=("\"resp\":\"")+(p1a1.getAsw())+("\"}");
-            if (i != pregunta1a1List.size() - 1) jsonform+=(",");
+            jsonform.append("{\"preg\":\"").append(p1a1.getQust()).append("\",");
+            jsonform.append("\"resp\":\"").append(p1a1.getAsw()).append("\"}");
+            if (i != pregunta1a1List.size() - 1) jsonform.append(",");
         }
-        jsonform+="]";
-        return jsonform;
+        jsonform.append("]");
+        return jsonform.toString();
     }
 
+    /**
+     * Obtiene la lista de preguntas actual.
+     *
+     * @return Lista de objetos {@link Pregunta1a1}.
+     */
     public List<Pregunta1a1> getPregunta1a1() {
         return pregunta1a1List;
     }

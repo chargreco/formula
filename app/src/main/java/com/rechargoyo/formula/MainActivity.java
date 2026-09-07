@@ -1,25 +1,16 @@
 package com.rechargoyo.formula;
 
-import static androidx.core.content.ContentProviderCompat.requireContext;
-import static com.rechargoyo.formula.R.*;
+import static com.rechargoyo.formula.R.drawable;
+import static com.rechargoyo.formula.R.id;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,24 +46,29 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Actividad contenedora principal de la aplicación.
+ * Administra el menú de navegación inferior ({@link BottomNavigationView}), el botón flotante (+),
+ * el panel deslizable lateral de notificaciones ({@link DrawerLayout}) y el intercambio de fragmentos.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class MainActivity extends AppCompatActivity {
 
-    FloatingActionButton fab;
-
-    String user,user2;
-    String text;
+    private FloatingActionButton fab;
+    private String user, user2;
+    private String text;
     public RequestQueue rq;
-    DrawerLayout drawerLayout;
-    BottomNavigationView bottomNavigationView;
+    private DrawerLayout drawerLayout;
+    private BottomNavigationView bottomNavigationView;
     private TextView nav_header_title;
 
-    //----------
     private RecyclerView recyclerView;
     private NotificacionesAdapter adapter;
     private List<Notificacion> notificaciones;
     private TextView noSessionMessage;
     private RequestQueue requestQueue;
-    private SharedPreferences sharedPreferences;
 
     @SuppressLint({"NonConstantResourceId", "WrongViewCast", "MissingInflatedId"})
     @Override
@@ -82,40 +78,31 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         requestQueue = Volley.newRequestQueue(this);
-        //nav_header_title = findViewById(R.id.nav_header_title);
         SharedPreferences sp22 = getSharedPreferences("info", Context.MODE_PRIVATE);
         user2 = sp22.getString("user", "");
 
-
-        recyclerView = findViewById(R.id.recycler_viewww);
-        noSessionMessage = findViewById(R.id.no_session_message);
+        recyclerView = findViewById(id.recycler_viewww);
+        noSessionMessage = findViewById(id.no_session_message);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         notificaciones = new ArrayList<>();
         adapter = new NotificacionesAdapter(this, notificaciones);
         recyclerView.setAdapter(adapter);
 
-//        if (user2.isEmpty()) {
-//            nav_header_title.setText("Necesitas iniciar sesión");
-//        } else {
-//            getNotifications(user2);
-//        }
-
         rq = Volley.newRequestQueue(this);
 
-        bottomNavigationView = findViewById(R.id.bottomNavigationView);
-        fab = findViewById(R.id.fab);
-        drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        bottomNavigationView = findViewById(id.bottomNavigationView);
+        fab = findViewById(id.fab);
+        drawerLayout = findViewById(id.drawer_layout);
+        NavigationView navigationView = findViewById(id.nav_view);
+        Toolbar toolbar = findViewById(id.toolbar);
         toolbar.setTitle("Notificaciones");
         setSupportActionBar(toolbar);
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open_nav, R.string.close_nav);
         drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
-            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
-
-            }
+            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {}
 
             @Override
             public void onDrawerOpened(@NonNull View drawerView) {
@@ -123,106 +110,91 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onDrawerClosed(@NonNull View drawerView) {
-
-            }
+            public void onDrawerClosed(@NonNull View drawerView) {}
 
             @Override
-            public void onDrawerStateChanged(int newState) {
-
-            }
+            public void onDrawerStateChanged(int newState) {}
         });
         toggle.syncState();
 
-        // Cambiar el icono del botón del drawer toggle
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setHomeAsUpIndicator(drawable.baseline_notifications_24); // Usa tu icono personalizado aquí
+            getSupportActionBar().setHomeAsUpIndicator(drawable.baseline_notifications_24);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // Asegurarse de manejar los eventos de clic en el icono de notificaciones
-        toolbar.setNavigationOnClickListener(view -> {
-            // Aquí puedes manejar el evento clic, por ejemplo abrir el drawer o algo relacionado con notificaciones
-            drawerLayout.openDrawer(GravityCompat.START); // O alguna otra lógica
-        });
+        toolbar.setNavigationOnClickListener(view -> drawerLayout.openDrawer(GravityCompat.START));
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeFragment()).commit();
-            navigationView.setCheckedItem(R.id.nav_view);
+            getSupportFragmentManager().beginTransaction().replace(id.fragment_container, new HomeFragment()).commit();
+            navigationView.setCheckedItem(id.nav_view);
         }
 
         replaceFragment(new HomeFragment());
 
-
         bottomNavigationView.setBackground(null);
         bottomNavigationView.setOnItemSelectedListener(item -> {
-
-            int id = item.getItemId();
-            if (id == R.id.home) {
+            int itemId = item.getItemId();
+            if (itemId == id.home) {
                 replaceFragment(new HomeFragment());
                 getAll();
-            } else if(id == R.id.formula){
+            } else if (itemId == id.formula) {
                 SharedPreferences sp = getSharedPreferences("info", Context.MODE_PRIVATE);
-                user = sp.getString("user","");
-                if(user.equals("")){
-                    Intent intent = new Intent(this,Login.class);
-                    startActivityForResult(intent,100);
-                }else{
+                user = sp.getString("user", "");
+                if (user.equals("")) {
+                    Intent intent = new Intent(this, Login.class);
+                    startActivityForResult(intent, 100);
+                } else {
                     replaceFragment(new FormulaFragment());
                 }
                 getAll();
-            } else if (id == R.id.perfil) {
+            } else if (itemId == id.perfil) {
                 SharedPreferences sp = getSharedPreferences("info", Context.MODE_PRIVATE);
-                user = sp.getString("user","");
-                if(user.equals("")){
-                    Intent intent = new Intent(this,Login.class);
-                    startActivityForResult(intent,100);
-                }else{
+                user = sp.getString("user", "");
+                if (user.equals("")) {
+                    Intent intent = new Intent(this, Login.class);
+                    startActivityForResult(intent, 100);
+                } else {
                     replaceFragment(new PerfilFragment());
                 }
                 getAll();
             }
-
             return true;
         });
 
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                SharedPreferences sp = getSharedPreferences("info", Context.MODE_PRIVATE);
-                user = sp.getString("user","");
-                if(user.equals("")){
-                    Intent intent = new Intent(MainActivity.this,Login.class);
-                    startActivityForResult(intent,100);
-                }else{
-                    bottomNavigationView.setSelectedItemId(id.formula);
-                    replaceFragment(new FormulaFragment());
-                }
-                getAll();
+        fab.setOnClickListener(view -> {
+            SharedPreferences sp = getSharedPreferences("info", Context.MODE_PRIVATE);
+            user = sp.getString("user", "");
+            if (user.equals("")) {
+                Intent intent = new Intent(MainActivity.this, Login.class);
+                startActivityForResult(intent, 100);
+            } else {
+                bottomNavigationView.setSelectedItemId(id.formula);
+                replaceFragment(new FormulaFragment());
             }
+            getAll();
         });
     }
 
+    /**
+     * Envía una petición GET al servidor para marcar todas las notificaciones del usuario como leídas/vistas.
+     */
     private void marcarNotificacionesVistas() {
-        String url = "https://prototipoformula.fun/marcar_notificaciones_vistas.php?user=" + user2;
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                response -> {
-                    // Manejar la respuesta del servidor
-                },
-                error -> {
-                    // Manejar el error
-                });
-
+        String url = Constants.BASE_URL + "marcar_notificaciones_vistas.php?user=" + user2;
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, response -> {}, error -> {});
         requestQueue.add(stringRequest);
     }
 
+    /**
+     * Carga el listado de notificaciones asociadas al usuario desde el servidor.
+     *
+     * @param user Nombre del usuario autenticado.
+     */
     private void loadNotificaciones(String user) {
-
         user2 = user;
         notificaciones.clear();
         adapter.notifyDataSetChanged();
-        String url = "https://prototipoformula.fun/get_notificaciones.php?username=" + user;
+        String url = Constants.BASE_URL + "get_notificaciones.php?username=" + user;
+
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
                     try {
@@ -232,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                                 JSONObject notificacionObj = data.getJSONObject(i);
                                 String notificacion = notificacionObj.getString("notificacion");
                                 int visto = notificacionObj.getInt("visto");
-                                Notificacion noti = new Notificacion(notificacion,visto);
+                                Notificacion noti = new Notificacion(notificacion, visto);
                                 notificaciones.add(noti);
                             }
                             adapter.notifyDataSetChanged();
@@ -241,16 +213,18 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                         Toast.makeText(MainActivity.this, "Error al cargar las notificaciones", Toast.LENGTH_SHORT).show();
                     }
-                }, error -> {
-            Toast.makeText(MainActivity.this, "Error al cargar las notificaciones", Toast.LENGTH_SHORT).show();
-        });
+                }, error -> Toast.makeText(MainActivity.this, "Error al cargar las notificaciones", Toast.LENGTH_SHORT).show());
 
         Volley.newRequestQueue(this).add(jsonObjectRequest);
     }
 
-
+    /**
+     * Obtiene notificaciones detalladas vía método POST.
+     *
+     * @param user Nombre de usuario.
+     */
     private void getNotifications(String user) {
-        String url = "https://prototipoformula.fun/get_notificaciones.php";
+        String url = Constants.BASE_URL + "get_notificaciones.php";
         RequestQueue queue = Volley.newRequestQueue(this);
         text = "";
 
@@ -262,30 +236,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, requestObject,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            JSONArray notifications = response.getJSONArray("notificaciones");
-                            StringBuilder notificationsText = new StringBuilder();
-                            for (int i = 0; i < notifications.length(); i++) {
-                                notificationsText.append(notifications.getString(i)).append("\n");
-                            }
-                            text = notificationsText.toString();
-                            nav_header_title.setText(text);
-                            Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Toast.makeText(MainActivity.this, "Error al obtener las notificaciones", Toast.LENGTH_SHORT).show();
+                response -> {
+                    try {
+                        JSONArray notifications = response.getJSONArray("notificaciones");
+                        StringBuilder notificationsText = new StringBuilder();
+                        for (int i = 0; i < notifications.length(); i++) {
+                            notificationsText.append(notifications.getString(i)).append("\n");
                         }
+                        text = notificationsText.toString();
+                        nav_header_title.setText(text);
+                        Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(MainActivity.this, "Error al obtener las notificaciones", Toast.LENGTH_SHORT).show();
                     }
-                }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-                Toast.makeText(MainActivity.this, "Error al obtener las notificaciones", Toast.LENGTH_SHORT).show();
-            }
+                }, error -> {
+            error.printStackTrace();
+            Toast.makeText(MainActivity.this, "Error al obtener las notificaciones", Toast.LENGTH_SHORT).show();
         });
         queue.add(jsonObjectRequest);
     }
@@ -293,51 +260,51 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==100){
-            if(resultCode==Activity.RESULT_OK){
+        if (requestCode == 100) {
+            if (resultCode == Activity.RESULT_OK && data != null && data.getExtras() != null) {
                 Bundle datos = data.getExtras();
-                if(datos.getInt("opcion")==0){
-
-                    SharedPreferences sp = getSharedPreferences("info",Context.MODE_PRIVATE);
+                if (datos.getInt("opcion") == 0) {
+                    SharedPreferences sp = getSharedPreferences("info", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sp.edit();
                     String us = datos.getString("user");
-                    editor.putString("user",us);
-                    editor.putString("pass",datos.getString("pass"));
-                    editor.putString("name",datos.getString("name"));
-                    editor.putInt("creac",datos.getInt("creac"));
-                    editor.commit();
+                    editor.putString("user", us);
+                    editor.putString("pass", datos.getString("pass"));
+                    editor.putString("name", datos.getString("name"));
+                    editor.putInt("creac", datos.getInt("creac"));
+                    editor.apply();
                     replaceFragment(new PerfilFragment());
-
-                } else if(datos.getInt("opcion")==1){
+                } else if (datos.getInt("opcion") == 1) {
                     Intent intent = new Intent(this, Singin.class);
-                    startActivityForResult(intent,200);
-                } else{
-                    Toast.makeText(this, "Error en el getInt", Toast.LENGTH_SHORT).show();
+                    startActivityForResult(intent, 200);
                 }
             }
-        } else if(requestCode==200){
-            if(resultCode==Activity.RESULT_OK){
+        } else if (requestCode == 200) {
+            if (resultCode == Activity.RESULT_OK && data != null && data.getExtras() != null) {
                 Bundle datos = data.getExtras();
-                if(datos.getInt("opcion")==1){
+                if (datos.getInt("opcion") == 1) {
                     Intent intent = new Intent(this, Login.class);
-                    startActivityForResult(intent,100);
-                } else if(datos.getInt("opcion")==0){
-                    SharedPreferences sp = getSharedPreferences("info",Context.MODE_PRIVATE);
+                    startActivityForResult(intent, 100);
+                } else if (datos.getInt("opcion") == 0) {
+                    SharedPreferences sp = getSharedPreferences("info", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sp.edit();
                     String us = datos.getString("user");
-                    editor.putString("user",us);
-                    editor.putString("pass",datos.getString("pass"));
-                    editor.putString("name",datos.getString("name"));
-                    editor.putInt("creac",datos.getInt("creac"));
-                    editor.commit();
+                    editor.putString("user", us);
+                    editor.putString("pass", datos.getString("pass"));
+                    editor.putString("name", datos.getString("name"));
+                    editor.putInt("creac", datos.getInt("creac"));
+                    editor.apply();
                     replaceFragment(new PerfilFragment());
                 }
             }
         }
     }
 
+    /**
+     * Reemplaza el fragmento visible actual en el contenedor por uno nuevo.
+     *
+     * @param fragment Instancia del fragmento a desplegar.
+     */
     public void replaceFragment(Fragment fragment) {
-
         SharedPreferences sp2 = getSharedPreferences("info", Context.MODE_PRIVATE);
         String user2 = sp2.getString("user", "");
 
@@ -352,11 +319,9 @@ public class MainActivity extends AppCompatActivity {
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, fragment);
+        fragmentTransaction.replace(id.fragment_container, fragment);
         fragmentTransaction.commit();
     }
-
-
 
     @Override
     protected void onStart() {
@@ -364,32 +329,35 @@ public class MainActivity extends AppCompatActivity {
         getAll();
     }
 
-    public void getAll(){
-
-        String url="https://prototipoformula.fun/conect.php";
-        JsonArrayRequest r = new JsonArrayRequest(Request.Method.GET,url,null,
-                response -> {
-                },
+    /**
+     * Verifica el estado de conectividad al backend mediante una petición GET a conect.php.
+     * En caso de error de red, abre la actividad {@link NoConection}.
+     */
+    public void getAll() {
+        String url = Constants.BASE_URL + "conect.php";
+        JsonArrayRequest r = new JsonArrayRequest(Request.Method.GET, url, null,
+                response -> {},
                 error -> {
-                    Intent intent = new Intent(this,NoConection.class);
+                    Intent intent = new Intent(this, NoConection.class);
                     startActivity(intent);
                 });
         rq.add(r);
-
-
     }
 
-
-    public void logout(View v){
-        bottomNavigationView.setSelectedItemId(R.id.home);
-        SharedPreferences sp = getSharedPreferences("info",MODE_PRIVATE);
+    /**
+     * Cierra la sesión activa borrando los datos del usuario en SharedPreferences.
+     *
+     * @param v Vista del botón de cierre de sesión.
+     */
+    public void logout(View v) {
+        bottomNavigationView.setSelectedItemId(id.home);
+        SharedPreferences sp = getSharedPreferences("info", MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.remove("user");
         editor.remove("pass");
         editor.remove("creac");
         editor.remove("name");
-        editor.commit();
+        editor.apply();
         replaceFragment(new HomeFragment());
     }
-
 }

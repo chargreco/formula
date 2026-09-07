@@ -3,53 +3,53 @@ package com.rechargoyo.formula;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ * Actividad que despliega la vista previa detallada de un juego seleccionado.
+ * Muestra la portada según el tipo de minijuego, el nombre del creador, el título
+ * y el código hexadecimal único asignado ("Fórmula"). Incluye el botón para iniciar la partida.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class info extends AppCompatActivity {
 
-    String nombreJuego;
-    int idJuego;
-    String tipoJuego;
-    String creadorJuego;
-    int tipoJuegoInt;
+    private String nombreJuego;
+    private int idJuego;
+    private String tipoJuego;
+    private String creadorJuego;
+    private int tipoJuegoInt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_info);
 
-        // Obtener el Intent que inició la actividad
         Intent intent = getIntent();
-
-        // Extraer datos del Intent
-        idJuego = intent.getIntExtra("idJuego",0);
-
-
-
+        idJuego = intent.getIntExtra("idJuego", 0);
         nombreJuego = intent.getStringExtra("nombreJuego");
         creadorJuego = intent.getStringExtra("creadorJuego");
         tipoJuegoInt = intent.getIntExtra("tipoJuegoInt", 10);
-        tipoJuego = (tipoJuegoInt == 0 ? "Cuestionario Simple" : (tipoJuegoInt == 1 ? "Relacionar columnas" : (tipoJuegoInt == 2 ? "Tres en Raya" : "Memorama")));
-        if(! (creadorJuego.charAt(0)=='@')) creadorJuego = "@" + creadorJuego;
 
+        tipoJuego = (tipoJuegoInt == 0 ? "Cuestionario Simple" : (tipoJuegoInt == 1 ? "Relacionar columnas" : (tipoJuegoInt == 2 ? "Tres en Raya" : "Memorama")));
+        
+        if (creadorJuego != null && !creadorJuego.isEmpty() && creadorJuego.charAt(0) != '@') {
+            creadorJuego = "@" + creadorJuego;
+        }
 
         TextView codigoJuego = findViewById(R.id.codigoJuego);
-        codigoJuego.setText(Integer.toHexString(1000000-idJuego).toUpperCase());
+        codigoJuego.setText(Integer.toHexString(1000000 - idJuego).toUpperCase());
 
-
-
-        // Obtener referencias a los elementos de la vista
         ImageView imagenJuego = findViewById(R.id.imagenJuego);
         TextView tvNombreJuego = findViewById(R.id.nombreJuego);
         TextView tvTipoJuego = findViewById(R.id.tipoJuego);
         TextView tvCreadorJuego = findViewById(R.id.creadorJuego);
 
-        // Cambiar la imagen dependiendo del tipo de juego
+        // Seleccionar la portada según el tipo de juego
         switch (tipoJuegoInt) {
             case 0:
                 imagenJuego.setImageResource(R.drawable.bquest);
@@ -64,42 +64,37 @@ public class info extends AppCompatActivity {
                 imagenJuego.setImageResource(R.drawable.bmem);
                 break;
             default:
-                imagenJuego.setImageResource(R.drawable.brel); // Imagen por defecto
+                imagenJuego.setImageResource(R.drawable.brel);
                 break;
         }
 
-        // Actualizar TextViews
         tvNombreJuego.setText(nombreJuego);
         tvTipoJuego.setText(tipoJuego);
         tvCreadorJuego.setText(creadorJuego);
-
     }
 
-    public void jugar(View v){
-        if(tipoJuegoInt == 0) {
-            Intent intent = new Intent(this, Quest.class);
-            intent.putExtra("idJuego", idJuego);
-            intent.putExtra("nombreJuego", nombreJuego);
-            intent.putExtra("creadorJuego", creadorJuego);
-            startActivity(intent);
+    /**
+     * Inicia la actividad correspondiente al minijuego seleccionado.
+     *
+     * @param v Vista (botón) que disparó el evento.
+     */
+    public void jugar(View v) {
+        Intent intent;
+        if (tipoJuegoInt == 0) {
+            intent = new Intent(this, Quest.class);
         } else if (tipoJuegoInt == 1) {
-            Intent intent = new Intent(this, Rel.class);
-            intent.putExtra("idJuego", idJuego);
-            intent.putExtra("nombreJuego", nombreJuego);
-            intent.putExtra("creadorJuego", creadorJuego);
-            startActivity(intent);
+            intent = new Intent(this, Rel.class);
         } else if (tipoJuegoInt == 2) {
-            Intent intent = new Intent(this, Tictac.class);
-            intent.putExtra("idJuego", idJuego);
-            intent.putExtra("nombreJuego", nombreJuego);
-            intent.putExtra("creadorJuego", creadorJuego);
-            startActivity(intent);
+            intent = new Intent(this, Tictac.class);
         } else if (tipoJuegoInt == 3) {
-            Intent intent = new Intent(this, Mem.class);
-            intent.putExtra("idJuego", idJuego);
-            intent.putExtra("nombreJuego", nombreJuego);
-            intent.putExtra("creadorJuego", creadorJuego);
-            startActivity(intent);
+            intent = new Intent(this, Mem.class);
+        } else {
+            return;
         }
+
+        intent.putExtra("idJuego", idJuego);
+        intent.putExtra("nombreJuego", nombreJuego);
+        intent.putExtra("creadorJuego", creadorJuego);
+        startActivity(intent);
     }
 }

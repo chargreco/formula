@@ -20,14 +20,30 @@ import com.android.volley.toolbox.Volley;
 
 import java.util.List;
 
+/**
+ * Adaptador para el {@link RecyclerView} encargado de mostrar la lista de creaciones creadas por el usuario.
+ * Asigna los íconos de tipo de juego y los contadores de interacción.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class CreacionesAdapter extends RecyclerView.Adapter<CreacionesAdapter.ViewHolder> {
 
     private boolean suma;
     private boolean click;
 
+    /** Lista de creaciones del usuario a mostrar en la interfaz. */
     private final List<Creaciones> creacionesList;
+
+    /** Cola de peticiones de Volley para interacciones de red. */
     private RequestQueue requestQueue;
 
+    /**
+     * Construye un nuevo adaptador para la lista de creaciones.
+     *
+     * @param context        Contexto de la aplicación o actividad.
+     * @param creacionesList Lista de objetos {@link Creaciones}.
+     */
     public CreacionesAdapter(Context context, List<Creaciones> creacionesList) {
         this.creacionesList = creacionesList;
         this.requestQueue = Volley.newRequestQueue(context);
@@ -48,21 +64,18 @@ public class CreacionesAdapter extends RecyclerView.Adapter<CreacionesAdapter.Vi
         suma = false;
         click = false;
 
-        // Configurar el contenido de las vistas
-
-
-        //Para que no se escriba un nombre tan largo
+        // Limitar la longitud del nombre para evitar desbordamiento visual
         String nombreAux = "";
-        if (creaciones.getNombreJuego().length()>=35) {
-            for (int i = 0; i < 35; i++){
-                nombreAux+=creaciones.getNombreJuego().charAt(i);
+        if (creaciones.getNombreJuego().length() >= 35) {
+            for (int i = 0; i < 35; i++) {
+                nombreAux += creaciones.getNombreJuego().charAt(i);
             }
-            holder.tvNombre.setText(nombreAux+"...");
-        } else
+            holder.tvNombre.setText(nombreAux + "...");
+        } else {
             holder.tvNombre.setText(creaciones.getNombreJuego());
+        }
 
-
-        // Asignar la imagen según el tipo de juego
+        // Asignar la imagen correspondiente según el tipo de juego
         switch (creaciones.getTipoJuego()) {
             case 0:
                 holder.image.setImageResource(R.drawable.quest);
@@ -82,13 +95,12 @@ public class CreacionesAdapter extends RecyclerView.Adapter<CreacionesAdapter.Vi
                 break;
         }
 
-        // Configurar el ícono de "me gusta" según si dio like
+        // Configurar el ícono de "me gusta"
         updateLikeIcon(holder.imageLike, creaciones.getDioLike());
 
         holder.linearLayout.setOnClickListener(v -> {
-            Toast.makeText(v.getContext(), "ID del juego: "+creaciones.getIdJuego(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(v.getContext(), "ID del juego: " + creaciones.getIdJuego(), Toast.LENGTH_SHORT).show();
         });
-
     }
 
     @Override
@@ -96,6 +108,12 @@ public class CreacionesAdapter extends RecyclerView.Adapter<CreacionesAdapter.Vi
         return creacionesList.size();
     }
 
+    /**
+     * Actualiza el ícono de corazón dependiendo de si el usuario le dio "me gusta".
+     *
+     * @param imageLike ImageView del ícono de corazón.
+     * @param dioLike   1 si dio like, 0 en caso contrario.
+     */
     private void updateLikeIcon(ImageView imageLike, int dioLike) {
         if (dioLike == 0) {
             imageLike.setImageResource(R.drawable.baseline_favorite_border_24);
@@ -104,16 +122,24 @@ public class CreacionesAdapter extends RecyclerView.Adapter<CreacionesAdapter.Vi
         }
     }
 
-    private void updateTextViewLikes(ViewHolder holder){
-        if(click){
-            if(suma){
-                holder.tvLikes.setText(String.valueOf(Integer.valueOf(holder.tvLikes.getText().toString())+1));
-            }else{
-                holder.tvLikes.setText(String.valueOf(Integer.valueOf(holder.tvLikes.getText().toString())-1));
+    /**
+     * Actualiza el contador de likes mostrado en la vista tras una interacción del usuario.
+     *
+     * @param holder ViewHolder de la celda modificada.
+     */
+    private void updateTextViewLikes(ViewHolder holder) {
+        if (click) {
+            if (suma) {
+                holder.tvLikes.setText(String.valueOf(Integer.valueOf(holder.tvLikes.getText().toString()) + 1));
+            } else {
+                holder.tvLikes.setText(String.valueOf(Integer.valueOf(holder.tvLikes.getText().toString()) - 1));
             }
         }
     }
 
+    /**
+     * ViewHolder que mantiene las referencias a las vistas de cada elemento de la lista.
+     */
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvNombre;
         ImageView image;

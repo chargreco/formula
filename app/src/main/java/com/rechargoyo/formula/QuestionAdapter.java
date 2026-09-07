@@ -12,10 +12,23 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
+/**
+ * Adaptador para el {@link RecyclerView} del Cuestionario Simple ({@link Quest}).
+ * Muestra cada pregunta con su enunciado y un grupo de botones de opción ({@link RadioGroup}) para seleccionar respuesta.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.QuestionViewHolder> {
 
+    /** Lista de preguntas de opción múltiple. */
     private final ArrayList<Question> questionList;
 
+    /**
+     * Construye un adaptador para el cuestionario.
+     *
+     * @param questionList Lista de preguntas {@link Question}.
+     */
     public QuestionAdapter(ArrayList<Question> questionList) {
         this.questionList = questionList;
     }
@@ -38,6 +51,9 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Questi
         return questionList.size();
     }
 
+    /**
+     * ViewHolder que gestiona la vista de cada pregunta y la selección de botones de radio.
+     */
     static class QuestionViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView textViewQuestion;
@@ -54,17 +70,19 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Questi
             radioButtons[3] = itemView.findViewById(R.id.radioButton4);
         }
 
+        /**
+         * Vincula los datos de la pregunta con las vistas de radio buttons del ítem.
+         *
+         * @param question Objeto {@link Question} con las respuestas a mostrar.
+         */
         public void bind(Question question) {
             textViewQuestion.setText(question.getQuestionText());
             ArrayList<String> answers = question.getAnswers();
             for (int i = 0; i < radioButtons.length; i++) {
                 radioButtons[i].setText(answers.get(i));
-                radioButtons[i].setOnClickListener(new View.OnClickListener(){
-                    @Override
-                    public void onClick(View v) {
-                        int selectedAnswer = radioGroupAnswers.indexOfChild(v);
-                        question.setSelectedOptionIndex(selectedAnswer);
-                    }
+                radioButtons[i].setOnClickListener(v -> {
+                    int selectedAnswer = radioGroupAnswers.indexOfChild(v);
+                    question.setSelectedOptionIndex(selectedAnswer);
                 });
             }
         }

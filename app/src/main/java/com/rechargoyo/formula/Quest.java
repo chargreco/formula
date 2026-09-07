@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,9 +26,16 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+/**
+ * Actividad que ejecuta la jugabilidad del minijuego "Cuestionario Simple" (Tipo 0).
+ * Carga las preguntas del backend, las desordena de manera aleatoria, evalúa las respuestas elegidas
+ * por el usuario y guarda la partida en la tabla de recientes.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class Quest extends AppCompatActivity {
 
     private RecyclerView recyclerView;
@@ -46,7 +52,9 @@ public class Quest extends AppCompatActivity {
         setContentView(R.layout.activity_quest);
 
         textView = findViewById(R.id.titleRel);
-        textView.setText(getIntent().getStringExtra("nombreJuego"));
+        if (getIntent().hasExtra("nombreJuego")) {
+            textView.setText(getIntent().getStringExtra("nombreJuego"));
+        }
 
         recyclerView = findViewById(R.id.recyclerView);
         buttonFinish = findViewById(R.id.buttonFinish);
@@ -67,9 +75,14 @@ public class Quest extends AppCompatActivity {
             int correctAnswers = evaluateAnswers();
             showResultDialog(correctAnswers, questionList.size());
         });
-
     }
 
+    /**
+     * Despliega el diálogo emergente con los resultados del cuestionario.
+     *
+     * @param correctAnswers Cantidad de respuestas acertadas.
+     * @param totalQuestions Número total de preguntas del cuestionario.
+     */
     private void showResultDialog(int correctAnswers, int totalQuestions) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Resultados del Cuestionario");
@@ -96,22 +109,22 @@ public class Quest extends AppCompatActivity {
         builder.create().show();
     }
 
+    /**
+     * Registra la partida completada en la tabla de recientes del servidor backend.
+     */
     private void saveRecent() {
         SharedPreferences sp = getSharedPreferences("info", MODE_PRIVATE);
         String user = sp.getString("user", "");
 
-        // Crear una solicitud POST para enviar los datos al servidor PHP
-        String url = "https://prototipoformula.fun/save_recent.php";
+        String url = Constants.BASE_URL + "save_recent.php";
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         String ans = jsonResponse.getString("ans");
                         if (ans.equals("ok")) {
-                            // Éxito al guardar en la base de datos
                             Toast.makeText(Quest.this, "Juego guardado en recientes", Toast.LENGTH_SHORT).show();
                         } else {
-                            // Error al guardar en la base de datos
                             Toast.makeText(Quest.this, "Error al guardar en recientes", Toast.LENGTH_SHORT).show();
                         }
                     } catch (JSONException e) {
@@ -129,11 +142,14 @@ public class Quest extends AppCompatActivity {
             }
         };
 
-        // Agregar la solicitud a la cola de solicitudes
         requestQueue.add(request);
     }
 
-
+    /**
+     * Evalúa cuántas de las preguntas fueron respondidas correctamente.
+     *
+     * @return Cantidad de aciertos.
+     */
     private int evaluateAnswers() {
         int correctCount = 0;
         for (Question question : questionList) {
@@ -144,24 +160,37 @@ public class Quest extends AppCompatActivity {
         return correctCount;
     }
 
+    /**
+     * Reinicia la actividad para volver a jugar el cuestionario.
+     */
     private void restartActivity() {
         Intent intent = getIntent();
         finish();
         startActivity(intent);
     }
 
+    /**
+     * Solicita al servidor el conjunto de preguntas pertenecientes al juego.
+     *
+     * @param idJuego Identificador del juego en el servidor.
+     */
     private void fetchQuestions(int idJuego) {
-        String url = "https://prototipoformula.fun/get_form.php?id=" + idJuego;
+        String url = Constants.BASE_URL + "get_form.php?id=" + idJuego;
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
                 Request.Method.GET,
                 url,
                 null,
-                response -> parseQuestions(response),
+                this::parseQuestions,
                 error -> Toast.makeText(Quest.this, "Error al obtener datos", Toast.LENGTH_SHORT).show()
         );
         requestQueue.add(jsonArrayRequest);
     }
 
+    /**
+     * Parsea la respuesta JSON recibida y llena la lista de preguntas desordenadas.
+     *
+     * @param response Objeto {@link JSONArray} recibido de la API.
+     */
     private void parseQuestions(JSONArray response) {
         try {
             for (int i = 0; i < response.length(); i++) {

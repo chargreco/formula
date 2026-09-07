@@ -1,10 +1,8 @@
 package com.rechargoyo.formula;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -15,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -33,6 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Actividad que ejecuta la jugabilidad del minijuego "Tres en Raya Educativo" (Tipo 2).
+ * Permite partidas entre 2 jugadores por turnos donde cada jugador debe responder correctamente
+ * una pregunta de opción múltiple antes de habilitar el marcado de una casilla en la cuadrícula (X u O).
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class Tictac extends AppCompatActivity {
 
     private GridLayout gridLayout;
@@ -72,7 +77,7 @@ public class Tictac extends AppCompatActivity {
             buttonStates[i] = false;
         }
 
-        playerTurn = 0; // Player 1 starts
+        playerTurn = 0; // Turno inicial: Jugador 1 (X)
         playerScores = new int[2];
         playerAttempts = new int[2];
 
@@ -84,6 +89,9 @@ public class Tictac extends AppCompatActivity {
         tictac_instructions.setText((playerTurn == 0 ? "Turno del jugador 1 (X)" : "Turno del jugador 2 (O)"));
     }
 
+    /**
+     * Muestra las instrucciones de juego iniciales al usuario.
+     */
     private void showInstructionsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Instrucciones del juego");
@@ -95,8 +103,11 @@ public class Tictac extends AppCompatActivity {
         builder.show();
     }
 
+    /**
+     * Solicita el conjunto de preguntas pertenecientes al juego desde la API PHP.
+     */
     private void fetchQuestions() {
-        String url = "https://prototipoformula.fun/get_form.php?id="+getIntent().getIntExtra("idJuego",0); // Use your game ID here
+        String url = Constants.BASE_URL + "get_form.php?id=" + getIntent().getIntExtra("idJuego", 0);
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
                 Request.Method.GET,
                 url,
@@ -107,12 +118,17 @@ public class Tictac extends AppCompatActivity {
         requestQueue.add(jsonArrayRequest);
     }
 
+    /**
+     * Parsea el JSON con las preguntas y respuestas recibidas del servidor.
+     *
+     * @param response Objeto {@link JSONArray} con los datos.
+     */
     private void parseQuestions(JSONArray response) {
         questionList = new ArrayList<>();
         try {
             for (int i = 0; i < response.length(); i++) {
                 JSONObject questionObject = response.getJSONObject(i);
-                String questionText = questionObject.getString("preg");
+                String qText = questionObject.getString("preg");
                 String correctAnswer = questionObject.getString("respcorrect");
                 ArrayList<String> answers = new ArrayList<>();
                 answers.add(correctAnswer);
@@ -121,7 +137,7 @@ public class Tictac extends AppCompatActivity {
                 answers.add(questionObject.getString("resp3"));
                 Collections.shuffle(answers);
 
-                questionList.add(new Question2(questionText, answers, correctAnswer));
+                questionList.add(new Question2(qText, answers, correctAnswer));
             }
             Collections.shuffle(questionList);
             showNextQuestion();
@@ -131,9 +147,12 @@ public class Tictac extends AppCompatActivity {
         }
     }
 
+    /**
+     * Muestra la siguiente pregunta en pantalla para el jugador en turno.
+     */
     private void showNextQuestion() {
         if (currentQuestionIndex >= questionList.size()) {
-            currentQuestionIndex = 0; // Restart the questions if we run out
+            currentQuestionIndex = 0;
         }
         Question2 currentQuestion = questionList.get(currentQuestionIndex);
         questionText.setText(currentQuestion.getQuestionText());
@@ -145,6 +164,9 @@ public class Tictac extends AppCompatActivity {
         }
     }
 
+    /**
+     * Evalúa la respuesta elegida por el usuario para otorgar o denegar el turno en el tablero.
+     */
     private void handleAnswerSubmission() {
         int selectedId = answerGroup.getCheckedRadioButtonId();
         if (selectedId == -1) {
@@ -169,8 +191,13 @@ public class Tictac extends AppCompatActivity {
         }
     }
 
+    /**
+     * Procesa la selección de una casilla en la cuadrícula de Tres en Raya.
+     *
+     * @param index Índice (0 a 8) de la casilla seleccionada.
+     */
     private void handleGridButtonClick(int index) {
-        if (buttonStates[index]) return; // Button already clicked
+        if (buttonStates[index]) return;
         answerGroup.check(-1);
         buttonSubmit.setEnabled(true);
         buttonStates[index] = true;
@@ -181,7 +208,7 @@ public class Tictac extends AppCompatActivity {
         enableGridButtons(false);
 
         if (checkForWin()) {
-            showGameOverDialog(playerTurn == 0 ? "Jugador 1 (X) gana!" : "Jugador 2 (O) gana!");
+            showGameOverDialog(playerTurn == 0 ? "¡Jugador 1 (X) gana!" : "¡Jugador 2 (O) gana!");
         } else if (isBoardFull()) {
             showGameOverDialog("Empate");
         } else {
@@ -190,28 +217,39 @@ public class Tictac extends AppCompatActivity {
         }
     }
 
+    /**
+     * Habilita o deshabilita los botones del tablero según la fase del turno.
+     *
+     * @param enable true para habilitar selección de casilla; false para bloquear.
+     */
     private void enableGridButtons(boolean enable) {
-        int colorX = getResources().getColor(R.color.X); // Obtener color definido para X
-        int colorO = getResources().getColor(R.color.O); // Obtener color definido para O
+        int colorX = getResources().getColor(R.color.X);
+        int colorO = getResources().getColor(R.color.O);
 
         for (int i = 0; i < 9; i++) {
             buttons[i].setEnabled(enable && !buttonStates[i]);
-            if(buttons[i].getText().toString().equals("X")){
-                buttons[i].setTextColor(colorX); // Cambiar color de texto a X
-            } else if(buttons[i].getText().toString().equals("O")){
-                buttons[i].setTextColor(colorO); // Cambiar color de texto a O
+            if (buttons[i].getText().toString().equals("X")) {
+                buttons[i].setTextColor(colorX);
+            } else if (buttons[i].getText().toString().equals("O")) {
+                buttons[i].setTextColor(colorO);
             }
         }
     }
 
-
+    /**
+     * Alterna el turno entre el Jugador 1 (X) y Jugador 2 (O).
+     */
     private void switchPlayerTurn() {
         playerTurn = (playerTurn + 1) % 2;
         tictac_instructions.setText((playerTurn == 0 ? "Turno del jugador 1 (X)" : "Turno del jugador 2 (O)"));
     }
 
+    /**
+     * Comprueba si alguno de los jugadores ha completado una línea ganadora de tres en raya.
+     *
+     * @return true si hay un ganador; false si no.
+     */
     private boolean checkForWin() {
-        // Horizontal, vertical and diagonal check
         return (buttons[0].getText() == buttons[1].getText() && buttons[1].getText() == buttons[2].getText() && !buttons[0].getText().toString().isEmpty()) ||
                 (buttons[3].getText() == buttons[4].getText() && buttons[4].getText() == buttons[5].getText() && !buttons[3].getText().toString().isEmpty()) ||
                 (buttons[6].getText() == buttons[7].getText() && buttons[7].getText() == buttons[8].getText() && !buttons[6].getText().toString().isEmpty()) ||
@@ -222,6 +260,11 @@ public class Tictac extends AppCompatActivity {
                 (buttons[2].getText() == buttons[4].getText() && buttons[4].getText() == buttons[6].getText() && !buttons[2].getText().toString().isEmpty());
     }
 
+    /**
+     * Comprueba si todas las casillas del tablero han sido ocupadas.
+     *
+     * @return true si el tablero está lleno; false en caso contrario.
+     */
     private boolean isBoardFull() {
         for (boolean state : buttonStates) {
             if (!state) return false;
@@ -229,9 +272,14 @@ public class Tictac extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Despliega la ventana final del juego con el resumen de estadísticas de aciertos por jugador.
+     *
+     * @param message Texto del resultado final (Victoria o Empate).
+     */
     private void showGameOverDialog(String message) {
-        String player1Stats = "Jugador 1 (X): " + playerScores[0] + " aciertos / " + playerAttempts[0] + " preguntas que se le hicieron.";
-        String player2Stats = "Jugador 2 (O): " + playerScores[1] + " aciertos / " + playerAttempts[1] + " preguntas que se le hicieron.";
+        String player1Stats = "Jugador 1 (X): " + playerScores[0] + " aciertos / " + playerAttempts[0] + " preguntas hechas.";
+        String player2Stats = "Jugador 2 (O): " + playerScores[1] + " aciertos / " + playerAttempts[1] + " preguntas hechas.";
 
         String finalMessage = message + "\n\n" + player1Stats + "\n" + player2Stats;
 
@@ -249,29 +297,33 @@ public class Tictac extends AppCompatActivity {
         builder.show();
     }
 
+    /**
+     * Reinicia la actividad actual.
+     */
     private void restartActivity() {
         Intent intent = getIntent();
         finish();
         startActivity(intent);
     }
 
+    /**
+     * Guarda la partida recién jugada en el historial del servidor.
+     */
     private void saveRecent() {
         Intent intent = getIntent();
         SharedPreferences sp = getSharedPreferences("info", MODE_PRIVATE);
         String user = sp.getString("user", "");
         int idJuego = intent.getIntExtra("idJuego", 0);
-        // Crear una solicitud POST para enviar los datos al servidor PHP
-        String url = "https://prototipoformula.fun/save_recent.php";
+
+        String url = Constants.BASE_URL + "save_recent.php";
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         String ans = jsonResponse.getString("ans");
                         if (ans.equals("ok")) {
-                            // Éxito al guardar en la base de datos
                             Toast.makeText(Tictac.this, "Juego guardado en recientes", Toast.LENGTH_SHORT).show();
                         } else {
-                            // Error al guardar en la base de datos
                             Toast.makeText(Tictac.this, "Error al guardar en recientes", Toast.LENGTH_SHORT).show();
                         }
                     } catch (JSONException e) {
@@ -289,11 +341,13 @@ public class Tictac extends AppCompatActivity {
             }
         };
 
-        // Agregar la solicitud a la cola de solicitudes
         requestQueue.add(request);
     }
 }
 
+/**
+ * Clase auxiliar interna que representa una pregunta de opción múltiple dentro del juego Tres en Raya.
+ */
 class Question2 {
     private String questionText;
     private List<String> answers;

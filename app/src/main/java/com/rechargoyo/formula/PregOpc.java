@@ -1,9 +1,7 @@
 package com.rechargoyo.formula;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -33,6 +31,13 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Actividad encargada de la interfaz de creación para minijuegos con preguntas de opción múltiple
+ * (Cuestionario Simple y Tres en Raya).
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class PregOpc extends AppCompatActivity implements View.OnClickListener {
 
     private RecyclerView rv;
@@ -48,7 +53,7 @@ public class PregOpc extends AppCompatActivity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_preg1a1); // Actualiza el layout si es necesario
+        setContentView(R.layout.activity_preg1a1);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -58,11 +63,14 @@ public class PregOpc extends AppCompatActivity implements View.OnClickListener {
         requestQueue = Volley.newRequestQueue(this);
 
         Bundle datos = getIntent().getExtras();
-        type = datos.getInt("type", 0);
-        rv = findViewById(R.id.rvp1a1); // Actualiza el ID si es necesario
-        add = findViewById(R.id.addp1a1); // Actualiza el ID si es necesario
-        nameOpc = findViewById(R.id.name1a1); // Actualiza el ID si es necesario
-        formulaOpc = findViewById(R.id.formula1a1); // Actualiza el ID si es necesario
+        if (datos != null) {
+            type = datos.getInt("type", 0);
+        }
+
+        rv = findViewById(R.id.rvp1a1);
+        add = findViewById(R.id.addp1a1);
+        nameOpc = findViewById(R.id.name1a1);
+        formulaOpc = findViewById(R.id.formula1a1);
 
         if (type == 0) {
             nameOpc.setHint("Cuestionario Simple");
@@ -79,17 +87,19 @@ public class PregOpc extends AppCompatActivity implements View.OnClickListener {
         preguntaOpc.add(new PreguntaOpc("", "", "", "", ""));
         preguntasOpcAdapter.notifyDataSetChanged();
 
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                preguntaOpc.add(new PreguntaOpc("", "", "", "", ""));
-                preguntasOpcAdapter.notifyDataSetChanged();
-            }
+        add.setOnClickListener(v -> {
+            preguntaOpc.add(new PreguntaOpc("", "", "", "", ""));
+            preguntasOpcAdapter.notifyDataSetChanged();
         });
 
         formulaOpc.setOnClickListener(this);
     }
 
+    /**
+     * Muestra un cuadro de diálogo de confirmación para subir los datos del juego.
+     *
+     * @param v Vista del botón de guardado.
+     */
     @Override
     public void onClick(View v) {
         SharedPreferences sp = getSharedPreferences("info", Context.MODE_PRIVATE);
@@ -97,47 +107,32 @@ public class PregOpc extends AppCompatActivity implements View.OnClickListener {
         AlertDialog.Builder alerta = new AlertDialog.Builder(this);
         alerta.setTitle("Formula");
         alerta.setMessage("¿Todo listo para guardarlo?");
-        alerta.setPositiveButton("Crear", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Subir la información a la base de datos
-                subirDatos();
-                finish();
-                dialog.dismiss();
-            }
+        alerta.setPositiveButton("Crear", (dialog, which) -> {
+            subirDatos();
+            finish();
+            dialog.dismiss();
         });
-        alerta.setNegativeButton("¡Espera!", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        alerta.setNegativeButton("¡Espera!", (dialog, which) -> dialog.dismiss());
         AlertDialog cuadro = alerta.create();
         cuadro.show();
     }
 
+    /**
+     * Serializa y sube las preguntas de opción múltiple al servidor backend PHP.
+     */
     private void subirDatos() {
-        String url = "https://prototipoformula.fun/add_form.php";
+        String url = Constants.BASE_URL + "add_form.php";
 
         JSONObject postData = new JSONObject();
         try {
             postData.put("user", user);
-            postData.put("nombre", (nameOpc.getText().toString().isEmpty()?(type==0?"Cuestionario simple por @"+user:"Tres en raya por @"+user):nameOpc.getText().toString()));
+            postData.put("nombre", (nameOpc.getText().toString().isEmpty() ? (type == 0 ? "Cuestionario simple por @" + user : "Tres en raya por @" + user) : nameOpc.getText().toString()));
             postData.put("tipo", type);
             postData.put("preguntas", preguntasOpcAdapter.post());
 
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, postData,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            Toast.makeText(PregOpc.this, "Datos subidos correctamente", Toast.LENGTH_SHORT).show();
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Toast.makeText(PregOpc.this, "Error al subir los datos", Toast.LENGTH_SHORT).show();
-                }
-            });
+                    response -> Toast.makeText(PregOpc.this, "Datos subidos correctamente", Toast.LENGTH_SHORT).show(),
+                    error -> Toast.makeText(PregOpc.this, "Error al subir los datos", Toast.LENGTH_SHORT).show());
 
             requestQueue.add(jsonObjectRequest);
         } catch (JSONException e) {

@@ -29,6 +29,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Actividad que ejecuta la jugabilidad del minijuego "Relacionar Columnas" (Tipo 1).
+ * Presenta dos columnas paralelas reordenables mediante drag & drop para emparejar
+ * preguntas con sus respuestas correspondientes.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class Rel extends AppCompatActivity {
 
     private RecyclerView leftColumnRecyclerView;
@@ -36,7 +44,7 @@ public class Rel extends AppCompatActivity {
     private RelAdapter leftColumnAdapter;
     private RelAdapter rightColumnAdapter;
     private ArrayList<String> questionsList, questionsMap;
-    private ArrayList<String> answersList,correctAnswersMap;
+    private ArrayList<String> answersList, correctAnswersMap;
     private Button buttonFinish;
     private RequestQueue requestQueue;
     private TextView textView;
@@ -47,7 +55,9 @@ public class Rel extends AppCompatActivity {
         setContentView(R.layout.activity_rel);
 
         textView = findViewById(R.id.titleRel);
-        textView.setText(getIntent().getStringExtra("nombreJuego"));
+        if (getIntent().hasExtra("nombreJuego")) {
+            textView.setText(getIntent().getStringExtra("nombreJuego"));
+        }
 
         leftColumnRecyclerView = findViewById(R.id.leftColumnRecyclerView);
         rightColumnRecyclerView = findViewById(R.id.rightColumnRecyclerView);
@@ -71,6 +81,7 @@ public class Rel extends AppCompatActivity {
 
         fetchQuestionsAndAnswers();
 
+        // Configuración de ItemTouchHelper para reordenar la columna izquierda
         ItemTouchHelper itemTouchHelperLeft = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -81,12 +92,11 @@ public class Rel extends AppCompatActivity {
             }
 
             @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                // No swipe action
-            }
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {}
         });
         itemTouchHelperLeft.attachToRecyclerView(leftColumnRecyclerView);
 
+        // Configuración de ItemTouchHelper para reordenar la columna derecha
         ItemTouchHelper itemTouchHelperRight = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -97,9 +107,7 @@ public class Rel extends AppCompatActivity {
             }
 
             @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                // No swipe action
-            }
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {}
         });
         itemTouchHelperRight.attachToRecyclerView(rightColumnRecyclerView);
 
@@ -107,32 +115,35 @@ public class Rel extends AppCompatActivity {
             int correctAnswers = evaluateAnswers();
             showResultDialog(correctAnswers, questionsList.size());
         });
-
     }
+
+    /**
+     * Reinicia la actividad actual.
+     */
     private void restartActivity() {
         Intent intent = getIntent();
         finish();
         startActivity(intent);
     }
 
-
+    /**
+     * Registra el resultado del juego reciente en el backend.
+     */
     private void saveRecent() {
         Intent intent = getIntent();
         SharedPreferences sp = getSharedPreferences("info", MODE_PRIVATE);
         String user = sp.getString("user", "");
         int idJuego = intent.getIntExtra("idJuego", 0);
-        // Crear una solicitud POST para enviar los datos al servidor PHP
-        String url = "https://prototipoformula.fun/save_recent.php";
+
+        String url = Constants.BASE_URL + "save_recent.php";
         StringRequest request = new StringRequest(Request.Method.POST, url,
                 response -> {
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         String ans = jsonResponse.getString("ans");
                         if (ans.equals("ok")) {
-                            // Éxito al guardar en la base de datos
                             Toast.makeText(Rel.this, "Juego guardado en recientes", Toast.LENGTH_SHORT).show();
                         } else {
-                            // Error al guardar en la base de datos
                             Toast.makeText(Rel.this, "Error al guardar en recientes", Toast.LENGTH_SHORT).show();
                         }
                     } catch (JSONException e) {
@@ -150,11 +161,14 @@ public class Rel extends AppCompatActivity {
             }
         };
 
-        // Agregar la solicitud a la cola de solicitudes
         requestQueue.add(request);
     }
 
-
+    /**
+     * Evalúa cuántos de los ítems en la posición actual coinciden con su par correcto.
+     *
+     * @return Cantidad de pares ordenados correctamente.
+     */
     private int evaluateAnswers() {
         int correctCount = 0;
         for (int i = 0; i < questionsList.size(); i++) {
@@ -165,16 +179,27 @@ public class Rel extends AppCompatActivity {
         return correctCount;
     }
 
+    /**
+     * Obtiene la respuesta esperada asociada a una pregunta específica.
+     *
+     * @param question Texto del concepto o pregunta.
+     * @return Texto de la respuesta correcta.
+     */
     private String getCorrectAnswer(String question) {
-        // Aquí obtienes la respuesta correcta a partir de la pregunta utilizando el HashMap correctAnswersMap
-        for (int i = 0; i < questionsMap.size(); i++){
-            if (questionsMap.get(i).equals(question)){
+        for (int i = 0; i < questionsMap.size(); i++) {
+            if (questionsMap.get(i).equals(question)) {
                 return correctAnswersMap.get(i);
             }
         }
         return "";
     }
 
+    /**
+     * Despliega la ventana con el puntaje obtenido al finalizar.
+     *
+     * @param correctAnswers Pares acertados.
+     * @param totalQuestions Número total de pares.
+     */
     private void showResultDialog(int correctAnswers, int totalQuestions) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Resultados del Cuestionario");
@@ -201,21 +226,28 @@ public class Rel extends AppCompatActivity {
         builder.create().show();
     }
 
-
+    /**
+     * Obtiene desde el backend el listado de preguntas y respuestas.
+     */
     private void fetchQuestionsAndAnswers() {
         Intent intent = getIntent();
         int idJuego = intent.getIntExtra("idJuego", 0);
-        String url = "https://prototipoformula.fun/get_form.php?id=" + idJuego;
+        String url = Constants.BASE_URL + "get_form.php?id=" + idJuego;
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
                 Request.Method.GET,
                 url,
                 null,
-                response -> parseQuestionsAndAnswers(response),
+                this::parseQuestionsAndAnswers,
                 error -> Toast.makeText(Rel.this, "Error al obtener datos", Toast.LENGTH_SHORT).show()
         );
         requestQueue.add(jsonArrayRequest);
     }
 
+    /**
+     * Parsea la respuesta JSON y prepara las columnas desordenadas.
+     *
+     * @param response Array JSON recibido.
+     */
     private void parseQuestionsAndAnswers(JSONArray response) {
         try {
             for (int i = 0; i < response.length(); i++) {

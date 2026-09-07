@@ -9,6 +9,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+/**
+ * Actividad desplegada cuando ocurre un fallo de red o cuando el dispositivo pierde la conexión a internet.
+ * Ofrece al usuario un botón de reintento para finalizar la pantalla y regresar a la vista anterior.
+ *
+ * @author Eduardo
+ * @version 1.0
+ */
 public class NoConection extends AppCompatActivity {
 
     @Override
@@ -23,7 +30,13 @@ public class NoConection extends AppCompatActivity {
         });
     }
 
-    public void retry(View v){
+    /**
+     * Evento asociado al botón de reintentar en la pantalla.
+     * Cierra la actividad actual para reintentar la operación anterior.
+     *
+     * @param v Vista (botón) que ejecutó la acción.
+     */
+    public void retry(View v) {
         finish();
     }
 }
